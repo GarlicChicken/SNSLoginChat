@@ -10,7 +10,8 @@
         <div class="readMessage">
           <ul>
             <li v-for="message in messages">
-              <div v-if="message.kakaoId == kakaoId">
+              <div v-if="message.date!==toDay" class="dateLine">{{toDay}}</div>
+              <div v-if="message.kakaoId === kakaoId">
                 <div class="myBox">{{ message.content }}</div>
               </div>
               <div v-else>
@@ -41,7 +42,8 @@ export default {
       isLoading: false,
       messages: [],
       newMessage: null,
-      kakaoId: null
+      kakaoId: null,
+      toDay: String(new Date().getFullYear())+'년 '+ String(new Date().getMonth())+'월 '+String(new Date().getDate())+'일'
     }
   },
   created(){
@@ -58,11 +60,11 @@ export default {
         if(change.type == 'added'){
           let doc = change.doc
           this.messages.push({
-            id: doc.id,
             name: doc.data().name,
             content: doc.data().content,
             kakaoId: doc.data().kakaoId,
-            timestamp: doc.data().timestamp
+            timestamp: doc.data().timestamp,
+            date: doc.data().date
           })
           this.messages.sort(function (a, b){return a.timestamp - b.timestamp});// timestamp 기준으로 정렬
           this.isLoading=true;
@@ -76,13 +78,14 @@ export default {
   },
   methods: {
     addMessage(){
-      var date = Number(new Date()) // timestamp 변수
+      let timestamp = Number(new Date()) // timestamp 변수
       if(this.newMessage){
         db.collection('messages').add({
           content: this.newMessage,
           name: document.getElementById('kakaoName').value,
           kakaoId: document.getElementById('kakaoId').value,
-          timestamp: date
+          timestamp: timestamp,
+          date: this.toDay
         }).catch(err => {
           console.log(err)
         })
@@ -90,8 +93,8 @@ export default {
       }
     },
     scrollToEnd() { // 스크롤 자동으로 포커싱 되는 함수
-      var container = document.querySelector(".readMessage");
-      var scrollHeight = container.scrollHeight;
+      let container = document.querySelector(".readMessage");
+      let scrollHeight = container.scrollHeight;
       container.scrollTop = scrollHeight;
 		},
     kakaoLogout(){
@@ -103,108 +106,6 @@ export default {
 }
 </script>
 
-<style>
-  ul{
-    list-style: none;
-    margin:0px;
-    padding:0px;
-    text-align:left;
-  }
-  .loading {
-    margin: 20% auto 0;
-    width: 70px;
-    text-align: center;
-  }
-  .loading > div {
-    width: 18px;
-    height: 18px;
-    background-color: rgb(70, 165, 255);
-    border-radius: 100%;
-    display: inline-block;
-    -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-    animation: sk-bouncedelay 1.4s infinite ease-in-out both;
-  }
-  .loading .bounce1 {
-    -webkit-animation-delay: -0.32s;
-    animation-delay: -0.32s;
-  }
-  .loading .bounce2 {
-    -webkit-animation-delay: -0.16s;
-    animation-delay: -0.16s;
-  }
-  @-webkit-keyframes sk-bouncedelay {
-    0%, 80%, 100% { -webkit-transform: scale(0) }
-    40% { -webkit-transform: scale(1.0) }
-  }
-  @keyframes sk-bouncedelay {
-    0%, 80%, 100% { 
-      -webkit-transform: scale(0);
-      transform: scale(0);
-    } 40% { 
-      -webkit-transform: scale(1.0);
-      transform: scale(1.0);
-    }
-  }
-  .chatRoom{
-    display: inline-block;
-    background-color: white;
-    max-width: 500px;
-    box-shadow: 0px 10px 20px rgb(104, 104, 104);
-  }
-  .readMessage{
-    max-height: 600px;
-    border: 0px;  
-    margin: auto;
-    background-color: rgb(135, 178, 246);
-    overflow-y: scroll;
-    overflow-x: hidden;
-  }
-  #sendMessage{
-    width: 100%;
-    background-color: white;
-  }
-  #inputBox{
-    border: none;
-    outline: none;
-    height: 30px;
-    width: 90%;
-    padding: 2% 1% 2% 1%;
-  }
-  #logoutButton{
-    cursor: pointer;
-    font-size:1.7rem;
-    font-weight: bold;
-    width: 100%;
-    padding: 8px 0px 8px 0px;
-    color: #fcfcfc;
-    background-color: #868686;
-  }
-  #logoutButton:hover{
-    color: #3f3e3e;
-    background-color: #cecece;
-  }
-  /* Content CSS */
-  .myBox{
-    background-color: #fcff40;
-    display:inline-block;
-    max-width: 70%;
-    border-radius: 6px;
-    padding: 5px;
-    margin: 3px;  
-    text-align: right;
-    float: right;
-    clear: both;
-  }
-  .yourContent{
-    background-color: #ffffff;
-    display:inline-block;
-    max-width: 70%;
-    border-radius: 6px;
-    padding: 5px;
-    margin: 3px;  
-  }
-  .yourName{
-    margin-left: 5px;
-    color:rgb(39, 39, 39);
-  }
+<style scoped>
+  @import 'chatRoom.css';
 </style>

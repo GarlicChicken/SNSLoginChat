@@ -1,6 +1,6 @@
 <template>
   <div id="loginForm">
-    <h1>Welcome Chat Room</h1>
+    <h1>Welcome to Chat Room</h1>
     <div id="kakao-login">
       <a id="kakao-login-btn"></a>
       <a href="http://developers.kakao.com/logout"></a>
