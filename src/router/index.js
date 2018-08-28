@@ -9,7 +9,7 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/SNSLoginChat/',
+      path: '/',
       name: 'SnsLogin',
       component: SnsLogin
     },
@@ -17,8 +17,9 @@ export default new Router({
       path: '/SNSLoginChat/Chat',
       name: 'Chat',
       component: Chat,
+      props: null,
       beforeEnter: (to, from, next)=> {
-        if (Kakao.Auth.getAccessToken()){ 
+        if (Kakao.Auth.getAccessToken()){
           return next()
         }else {
           next('/')

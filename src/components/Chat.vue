@@ -8,22 +8,25 @@
     <div v-show="isLoading" class="chatRoom">
       <h2>SNS Login Chat Room</h2>
         <div class="readMessage">
+          <div id="viewMore" v-show="totalMessage >= viewMessage" v-on:click="viewMore">이전 대화 보기</div>
           <ul>
-            <li v-for="message in messages" :key="message.id">
-              <div class="dateLine" v-if="message.dateChange==='change'">{{ message.date }}</div>
-              <div v-if="message.kakaoId === kakaoId">
-                <div class="myBox">{{ message.content }}</div>
-              </div>
-              <div v-else>
-                <div class="yourName">{{ message.name }}</div>
-                <div class="yourContent">{{ message.content }}</div>
+            <li v-for="message, index in messages" :key="message.id">
+              <div v-if="viewMessage >= totalMessage - index">
+                <div class="dateLine" v-if="message.dateChange==='change'">{{ message.date }}</div>
+                <div v-if="message.kakaoId === kakaoId">
+                  <div class="myBox">{{ message.content }}</div>
+                </div>
+                <div v-else>
+                  <div class="yourName">{{ message.name }}</div>
+                  <div class="yourContent">{{ message.content }}</div>
+                </div>
               </div>
             </li>
           </ul>
         </div>
         <div id="sendMessage">
-          <form @submit.prevent="addMessage">         
-            <input id="inputBox" type="text" v-model="newMessage" autocomplete="off">
+          <form v-on:submit.prevent="addMessage">         
+            <input v-on:keydown="scrollMove" id="inputBox" type="text" v-model="newMessage" autocomplete="off">
           </form>
         </div>
         <div id="logoutButton" v-on:click="kakaoLogout">LOGOUT</div>
@@ -43,6 +46,9 @@ export default {
       messages: [],
       newMessage: null,
       kakaoId: null,
+      viewMessage: 20,
+      totalMessage: null,
+      update: null, // updated 한번만 사용
       toDay: String(new Date().getFullYear())+'년 '+ String(new Date().getMonth())+'월 '+String(new Date().getDate())+'일'
     }
   },
@@ -54,12 +60,12 @@ export default {
         document.getElementById('kakaoId').value = res.id;
       }
     })
-    let ref = db.collection("messages").orderBy("timestamp", "asc");
+    let ref = db.collection("messages").orderBy("timestamp", "asc")
     let dateCheck = null;
-
     ref.onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         if(change.type == 'added'){
+
           let doc = change.doc
           if (dateCheck !== null && dateCheck !== doc.data().date){
             this.messages.push({ 
@@ -68,7 +74,7 @@ export default {
               kakaoId: doc.data().kakaoId,
               timestamp: doc.data().timestamp,
               date: doc.data().date,
-              dateChange: 'change' 
+              dateChange: 'change'
             })  
           }else{
             this.messages.push({
@@ -80,14 +86,20 @@ export default {
             })
           }
           dateCheck = doc.data().date;
+          this.totalMessage = this.totalMessage + 1;
         }
       })
       this.isLoading=true;
     })
   },
   updated(){
-    this.kakaoId = document.getElementById('kakaoId').value;
-    this.scrollToEnd();
+    if (this.update === null){
+      this.scrollMove();
+      this.update = 'updated';
+    }
+    if (this.kakaoId !== document.getElementById('kakaoId').value){
+      this.kakaoId = document.getElementById('kakaoId').value;
+    }
   },
   methods: {
     addMessage(){
@@ -102,10 +114,11 @@ export default {
         }).catch(err => {
           console.log(err)
         })
-        this.newMessage = null
+        this.newMessage = null;
+        this.scrollMove();
       }
     },
-    scrollToEnd() { // 스크롤 자동으로 포커싱 되는 함수
+    scrollMove() {
       let container = document.querySelector(".readMessage");
       let scrollHeight = container.scrollHeight;
       container.scrollTop = scrollHeight;
@@ -114,6 +127,11 @@ export default {
       Kakao.Auth.logout(function() {
         location.href="/";
       });
+    },
+    viewMore(){
+      if(this.totalMessage >= this.viewMessage){
+        this.viewMessage = this.viewMessage + 20;
+      }
     }
   }
 }
