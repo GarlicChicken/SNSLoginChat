@@ -9,8 +9,8 @@
       <h2>SNS Login Chat Room</h2>
         <div class="readMessage">
           <ul>
-            <li v-for="message in messages">
-              <div v-if="message.date!==toDay" class="dateLine">{{toDay}}</div>
+            <li v-for="message in messages" :key="message.id">
+              <div class="dateLine" v-if="message.dateChange==='change'">{{ message.date }}</div>
               <div v-if="message.kakaoId === kakaoId">
                 <div class="myBox">{{ message.content }}</div>
               </div>
@@ -54,22 +54,35 @@ export default {
         document.getElementById('kakaoId').value = res.id;
       }
     })
-    let ref = db.collection('messages')
+    let ref = db.collection("messages").orderBy("timestamp", "asc");
+    let dateCheck = null;
+
     ref.onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         if(change.type == 'added'){
           let doc = change.doc
-          this.messages.push({
-            name: doc.data().name,
-            content: doc.data().content,
-            kakaoId: doc.data().kakaoId,
-            timestamp: doc.data().timestamp,
-            date: doc.data().date
-          })
-          this.messages.sort(function (a, b){return a.timestamp - b.timestamp});// timestamp 기준으로 정렬
-          this.isLoading=true;
+          if (dateCheck !== null && dateCheck !== doc.data().date){
+            this.messages.push({ 
+              name: doc.data().name,
+              content: doc.data().content,
+              kakaoId: doc.data().kakaoId,
+              timestamp: doc.data().timestamp,
+              date: doc.data().date,
+              dateChange: 'change' 
+            })  
+          }else{
+            this.messages.push({
+              name: doc.data().name,
+              content: doc.data().content,
+              kakaoId: doc.data().kakaoId,
+              timestamp: doc.data().timestamp,
+              date: doc.data().date
+            })
+          }
+          dateCheck = doc.data().date;
         }
       })
+      this.isLoading=true;
     })
   },
   updated(){
@@ -99,7 +112,7 @@ export default {
 		},
     kakaoLogout(){
       Kakao.Auth.logout(function() {
-        location.href="/SNSLoginChat/";
+        location.href="/";
       });
     }
   }
