@@ -20,14 +20,14 @@ export default {
   },
   created() {
     if(Kakao.Auth.getAccessToken()){
-      this.$router.push('SNSLoginChat/Chat')
+      this.$router.push('/SNSLoginChat/Chat')
     }
   },
   mounted() {
     Kakao.Auth.createLoginButton({
       container: '#kakao-login-btn',
       success: function(authObj)  {      
-        location.href="SNSLoginChat/";
+        location.href="/SNSLoginChat/";
       },
       fail: function(err) {
         this.feedback = "로그인이 정상적으로 되지 않았습니다.";

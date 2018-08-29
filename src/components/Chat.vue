@@ -145,7 +145,7 @@ export default {
 		},
     kakaoLogout(){
       Kakao.Auth.logout(function() {
-        location.href="SNSLoginChat/";
+        location.href="/SNSLoginChat/";
       });
     },
     viewMore(){
