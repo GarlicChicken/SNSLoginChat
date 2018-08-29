@@ -22,7 +22,7 @@ export default new Router({
         if (Kakao.Auth.getAccessToken()){
           return next()
         }else {
-          next('/')
+          next('/SNSLoginChat/')
         }
       }
     }
