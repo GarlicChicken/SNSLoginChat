@@ -9,12 +9,12 @@ export default new Router({
   mode: 'history',
   routes: [
     {
-      path: '/',
+      path: 'SNSLoginChat/',
       name: 'SnsLogin',
       component: SnsLogin
     },
     {
-      path: '/SNSLoginChat/Chat',
+      path: 'SNSLoginChat/Chat',
       name: 'Chat',
       component: Chat,
       props: null,

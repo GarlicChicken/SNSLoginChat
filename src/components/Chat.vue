@@ -8,18 +8,26 @@
     <div v-show="isLoading" class="chatRoom">
       <h2>SNS Login Chat Room</h2>
         <div class="readMessage">
-          <div id="viewMore" v-show="totalMessage >= viewMessage" v-on:click="viewMore">이전 대화 보기</div>
+          <div id="viewMore" v-show="countMessage >= viewMessage" v-on:click="viewMore">이전 대화 보기</div>
           <ul>
             <li v-for="message, index in messages" :key="message.id">
-              <div v-if="viewMessage >= totalMessage - index">
-                <div class="dateLine" v-if="message.dateChange==='change'">{{ message.date }}</div>
-                <div v-if="message.kakaoId === kakaoId">
+              <div v-if="viewMessage >= countMessage - index">
+                <!-- 날짜 변경 출력 -->
+                <div class="dateLine" v-show="message.dateChange">{{ message.date }}</div>
+                <!-- 나의 메세지 -->
+                <div class="myMessageBox" v-if="message.kakaoId === kakaoId">
+                  <div class="myTime" v-show="message.timeChange">{{message.time}}</div>
                   <div class="myBox">{{ message.content }}</div>
                 </div>
+                <!-- 타인 메세지 -->
                 <div v-else>
-                  <div class="yourName">{{ message.name }}</div>
-                  <div class="yourContent">{{ message.content }}</div>
+                  <div class="yourName" v-show="message.nameChange">{{ message.name }}</div>
+                  <div class="yourMessageBox">
+                    <div class="yourContent">{{ message.content }}</div>
+                    <span class="yourTime" v-show="message.timeChange">{{message.time}}</span>
+                  </div>
                 </div>
+                <div class="timeChangeSpace" v-show="message.timeChange"> </div>
               </div>
             </li>
           </ul>
@@ -47,9 +55,8 @@ export default {
       newMessage: null,
       kakaoId: null,
       viewMessage: 20,
-      totalMessage: null,
-      update: null, // updated 한번만 사용
-      toDay: String(new Date().getFullYear())+'년 '+ String(new Date().getMonth())+'월 '+String(new Date().getDate())+'일'
+      countMessage: 0,
+      scrollfocus: null
     }
   },
   created(){
@@ -61,41 +68,56 @@ export default {
       }
     })
     let ref = db.collection("messages").orderBy("timestamp", "asc")
-    let dateCheck = null;
+    const week = new Array('일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일');
+
     ref.onSnapshot(snapshot => {
       snapshot.docChanges().forEach(change => {
         if(change.type == 'added'){
-
           let doc = change.doc
-          if (dateCheck !== null && dateCheck !== doc.data().date){
-            this.messages.push({ 
-              name: doc.data().name,
-              content: doc.data().content,
-              kakaoId: doc.data().kakaoId,
-              timestamp: doc.data().timestamp,
-              date: doc.data().date,
-              dateChange: 'change'
-            })  
+          let msgDate = new Date(doc.data().timestamp);
+          let FullDate = msgDate.getFullYear()+'년 '+msgDate.getMonth()+'월 '+msgDate.getDate()+'일 '+ week[msgDate.getDay()];
+          let msgHour = msgDate.getHours();
+          let msgMinute = ('00'+msgDate.getMinutes()).slice(-2);
+          if (msgHour < 12){
+            msgHour = '오전 '+ msgHour; 
           }else{
-            this.messages.push({
-              name: doc.data().name,
-              content: doc.data().content,
-              kakaoId: doc.data().kakaoId,
-              timestamp: doc.data().timestamp,
-              date: doc.data().date
-            })
+            msgHour = '오후 '+ (msgHour - 12);
           }
-          dateCheck = doc.data().date;
-          this.totalMessage = this.totalMessage + 1;
+          this.messages.push({
+            name: doc.data().name,
+            content: doc.data().content,
+            kakaoId: doc.data().kakaoId,
+            date: FullDate,
+            time: msgHour + ':' + msgMinute,
+            dateChange: null,
+            timeChange: null,
+            nameChange: null
+          })
+          let i = this.countMessage;
+          if (i > 0){
+            if(this.messages[i]['date'] !== this.messages[i-1]['date']){
+              this.messages[i]['dateChange'] = 'Change';
+              this.messages[i-1]['timeChange'] = 'Change';
+            }else if(this.messages[i]['time'] !== this.messages[i-1]['time']){
+              this.messages[i-1]['timeChange'] = 'Change';
+              this.messages[i]['nameChange'] = 'Change';
+            }else if(this.messages[i]['kakaoId'] !== this.messages[i-1]['kakaoId']){
+              this.messages[i-1]['timeChange'] = 'Change';
+              this.messages[i]['nameChange'] = 'Change';
+            }
+          }else{
+            this.messages[i]['dateChange'] = 'Change';
+            this.messages[i]['timeChange'] = 'Change';
+          }
+          this.countMessage++;
         }
       })
       this.isLoading=true;
     })
   },
   updated(){
-    if (this.update === null){
+    if (this.scrollfocus === null){
       this.scrollMove();
-      this.update = 'updated';
     }
     if (this.kakaoId !== document.getElementById('kakaoId').value){
       this.kakaoId = document.getElementById('kakaoId').value;
@@ -103,19 +125,17 @@ export default {
   },
   methods: {
     addMessage(){
-      let timestamp = Number(new Date()) // timestamp 변수
       if(this.newMessage){
         db.collection('messages').add({
           content: this.newMessage,
           name: document.getElementById('kakaoName').value,
           kakaoId: document.getElementById('kakaoId').value,
-          timestamp: timestamp,
-          date: this.toDay
+          timestamp: Number(new Date())
         }).catch(err => {
           console.log(err)
         })
+        this.scrollfocus = null;
         this.newMessage = null;
-        this.scrollMove();
       }
     },
     scrollMove() {
@@ -125,12 +145,13 @@ export default {
 		},
     kakaoLogout(){
       Kakao.Auth.logout(function() {
-        location.href="/";
+        location.href="SNSLoginChat/";
       });
     },
     viewMore(){
-      if(this.totalMessage >= this.viewMessage){
+      if(this.countMessage >= this.viewMessage){
         this.viewMessage = this.viewMessage + 20;
+        this.scrollfocus = 'do not move';
       }
     }
   }

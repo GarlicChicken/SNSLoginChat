@@ -101,16 +101,17 @@ ul{
 }
 
 /* Message Content CSS */
+.timeChangeSpace{
+  height: 10px;
+}
 .myBox{
   background-color: #fffb00;
   display: inline-block;
   word-wrap: break-word;
   max-width: 70%;
-  border-radius: 6px;
-  padding: 5px;
-  margin: 3px 10px 3px 3px; 
-  float: right;
-  clear: both;
+  border-radius: 3px;
+  padding: 6px;
+  margin: 2px 13px 2px 3px;   
   position: relative;
 }
 .myBox:after, .myBox:before {
@@ -122,17 +123,37 @@ ul{
 }
 .myBox:after {
 	border-left-color: #fffb00;
-	border-width: 5px;
-	margin-top: -5px;
+	border-width: 6px;
+	margin-top: -6px;
+}
+.myMessageBox{
+  display: flex;
+  justify-content: flex-end;
+}
+.myTime{
+  align-self: flex-end;
+  margin: 10px 2px 5px 0px;
+  font-size: 0.75rem;
+}
+
+.yourMessageBox{
+  display: flex;
+  justify-content: flex-start;
+}
+
+.yourTime{
+  align-self: flex-end;
+  margin: 0px 0px 5px 2px;
+  font-size: 0.75rem;
 }
 .yourContent{
   background-color: #ffffff;
   display:inline-block;
   word-wrap: break-word;
   max-width: 70%;
-  border-radius: 6px;
-  padding: 5px;
-  margin: 5px 3px 3px 10px;
+  border-radius: 3px;
+  padding: 6px;
+  margin: 3px 3px 1px 13px;
   position: relative;
 }
 .yourContent:after, .yourContent:before {
@@ -144,8 +165,8 @@ ul{
 }
 .yourContent:after {
 	border-right-color: #ffffff;
-	border-width: 5px;
-	margin-top: -5px;
+	border-width: 6px;
+	margin-top: -6px;
 }
 .yourName{
   clear: both;
@@ -159,13 +180,13 @@ ul{
   display: flex;
   flex-basis: 100%;
   align-items: center;
-  color: rgba(61, 61, 61, 0.35);
-  font-size: 14px;
+  color: rgba(0, 0, 0, 0.486);
+  font-size: 13px;
 }
 .dateLine::before, .dateLine::after {
   content: "";
   flex-grow: 1;
-  background: rgba(63, 63, 63, 0.35);
+  background: rgba(0, 0, 0, 0.35);
   height: 1px;
   font-size: 0px;
   line-height: 0px;
